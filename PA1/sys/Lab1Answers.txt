@@ -1,0 +1,51 @@
+Question 1 
+
+	What are the advantages and disadvantages of each of the two scheduling policies? Also, give the advantages and disadvantages of the round robin scheduling policy originally implemented in Xinu.
+
+Answer - 
+
+Advantage of Exponential Distriution like Scheduling policy
+	> Its simple in implementation.
+	> Process with low priroty also get scheduled equally. 
+	> It prevents CPU to get in to starvation.
+	> Faster processing time
+
+Disadvantage of Exponential Distriution like Scheduling policy
+	> All process are not  equally scheduled.
+	> Rely on random values, until it comes to desired value, Process can't be scheduled.
+	
+
+Advantage of Linuxlike Scheduling policy
+	> As priority values changes at each epoch, Fairness across processes is ensured.
+	> Process with lower priority get fair chance in next epochs.
+	> Highest Priority process will be completed first.
+
+Disadvantage of Linuxlike Scheduling policy
+	> Complex implementation.
+	> High Time and space complexity
+
+Advantage of Xinu like round robin Scheduling policy
+	> Its simple in implementation.
+	> Higher priority processes scheduled first.
+
+Disadvantage of Xinu like round robin Scheduling policy
+	> Starvation for lowest priority processes.
+	> Lower the Time Slice for process execution, higher the context switching which results in slowing down the performance.
+
+___________________________
+
+Question 2 - 
+	Describe the way each of the schedulers affects the NULL process.
+
+Answer - 
+	Exponential like scheduler - If ther is no process at queue head i.e. readyhead, NULLPROC is scheduled.
+	Linux like scheduler	   - NULPROCC not scheduled.
+	Round Robin like scheduler - NULPROCC not scheduled.
+
+
+
+
+
+
+
+
