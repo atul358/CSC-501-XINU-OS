@@ -1,0 +1,109 @@
+/* frame.c - manage physical frames */
+#include <conf.h>
+#include <kernel.h>
+#include <proc.h>
+#include <paging.h>
+#define NOT_DEFINE -1
+/*-------------------------------------------------------------------------
+ * init_frm - initialize frm_tab
+ *-------------------------------------------------------------------------
+ */
+
+fr_map_t frm_tab[NFRAMES];
+
+
+SYSCALL init_frm(int i)
+{
+  //kprintf("\n init_frm %d \n", i);
+	//STATWORD ps;
+	//disable(ps);
+	//kprintf("\n Syscall init_frm in frame.c\n");
+	//int i;
+	//for(i = 0; i < NFRAMES; i++){
+	//int i =0;
+	//for(i = 0; i < (NBPG/4); i++){
+	
+	frm_tab[i].fr_status = FRM_UNMAPPED;
+	frm_tab[i].fr_pid = -1;
+	frm_tab[i].fr_vpno = -1;
+  	frm_tab[i].fr_refcnt = 0;
+	frm_tab[i].fr_type = -1;
+	frm_tab[i].fr_dirty = 0;
+//	}
+ //restore(ps);
+ //return 1;
+}
+
+/*-------------------------------------------------------------------------
+ * get_frm - get a free frame according page replacement policy
+ *-------------------------------------------------------------------------
+ */
+SYSCALL get_frm(int* avail)
+{
+	STATWORD ps;
+   	disable(ps);
+	int i = 0;
+	for(i; i < NFRAMES; i++)
+	{
+		if(frm_tab[i].fr_status == FRM_UNMAPPED)
+		{
+			*avail = i;
+		    restore(ps);
+  			return 1;
+	    }
+    }
+	kprintf("\nCalling replacement policy SC\n");
+	replace_policy_SC();
+	// Implement Page Replacement Policy
+restore(ps);
+return 2;
+}
+
+/*-------------------------------------------------------------------------
+ * free_frm - free a frame 
+ *-------------------------------------------------------------------------
+ */
+SYSCALL free_frm(int i)
+{
+
+ // kprintf("Syscall free_frm To be implemented!\n");
+  STATWORD ps;
+  disable(ps);
+  if(i<0) {restore(ps); return SYSERR;}
+
+		unsigned long base_reg;
+		unsigned long v_pno;
+ int type;
+ type = frm_tab[i].fr_type;
+ switch(type){
+	case FR_TBL:
+		base_reg = proctab[frm_tab[i].fr_pid].pdbr;
+		v_pno = frm_tab[i].fr_vpno;
+		unsigned int pg_tab_offset,pg_dir_offset;
+		pg_dir_offset = get_page_dir_offset(v_pno);
+         	pg_tab_offset = (get_page_tab_offset(v_pno));
+		
+		
+
+
+
+
+
+
+}
+
+  return OK;
+}
+
+
+void initialize_frames_SC_AGING(int i)
+{	
+	//kprintf("\ninitialize_frames_SC_AGING\n");
+	//int i = 0;
+	//while(i < NFRAMES){
+		frame_queue[i].frm_id = i;
+		frame_queue[i].next_frame = NOT_DEFINE;
+		frame_queue[i].frm_age = 0;
+	//	i++;
+	//}
+}
