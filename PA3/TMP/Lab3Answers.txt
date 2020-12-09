@@ -1,0 +1,89 @@
+
+Ans 1.1 - 
+
+Another approach is Priority Cieling approach to address Priority inheritance issue in different way.
+With priority ceiling protocol, the shared mutex process has a highest priority of its own, which is assigned to the task locking the mutex. 
+This works well, when the other high priority task(s) that tries to access the mutex does not have a priority higher than the ceiling priority.
+The benefit of this approch is that it doesn't fall into deadlock. Other advantage is that it avoids chained blocking problem of the priority inheritance.
+
+
+
+Ref - https://en.wikipedia.org/wiki/Priority_inversion
+Ref - https://en.wikipedia.org/wiki/Priority_ceiling_protocol
+Ref - https://www.geeksforgeeks.org/priority-ceiling-protocol
+
+Ans 1.2
+
+Output of Xinu semphore and prio
+rity inheritance shown below.
+
+Default Xinu semaphore implementation doesnt increase the priority of the running process if it has lower priority than the priority of the process waiting for that lock. That means no priority inversion.
+Therefore a low priority process would be waiting for indefinete time in the semaphone queue.
+
+In my implementation, I have used Priority inversion method.
+
+Below is the output for comparison.
+
+------------ XINU semaphore ----------
+
+ Writer/reader/writer/reader priority befor resuming [ writer 1 = 40 reader 1 = 10 writer 2 = 20 reader 2 = 15] 
+starts writer 1. writer 1 priority (prio 40) 
+  writer 3: to acquire sem
+  writer 3: acquired sem, sleep 2s
+  writer 3: to release sem
+
+ Writer/reader/writer/reader priority after resuming [ writer 1 = -1 reader 1 = 10 writer 2 = 20 reader 2 = 15] 
+starts reader 1. reader 1 priority (prio 10)
+  reader 2: to acquire sem
+  reader 2: acquired sem, sleep 2s
+
+ Writer/reader/writer/reader priority after resuming [ writer 1 = -1 reader 1 = 10 writer 2 = 20 reader 2 = 15] 
+ 
+starts writer 2. writer 2 priority (prio 20)
+  reader 2: to release sem
+
+ Writer/reader/writer/reader priority after resuming [ writer 1 = -1 reader 1 = -1 writer 2 = 20 reader 2 = 15] 
+starts reader 2. reader 1 priority (prio 15)
+  writer 4: to acquire sem
+  writer 4: acquired sem, sleep 2s
+  writer 4: to release sem
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+------------  Reader/Writer lock ------------
+
+ Writer/reader/writer/reader priority befor resuming [ writer 1 = 40 reader 1 = 10 writer 2 = 20 reader 2 = 15] 
+-start writer, then sleep 1s. lock granted to write (prio 40)
+  writer 1: to acquire lock
+  writer 1: acquired lock, sleep 3s
+
+ Writer/reader/writer/reader priority after resuming [ writer 1 = 40 reader 1 = 10 writer 2 = 20 reader 2 = 15] 
+-start reader A, then sleep 1s. reader A(prio 10) blocked on the lock
+  reader 1: to acquire lock
+
+ Writer/reader/writer/reader priority after resuming [ writer 1 = 10 reader 1 = 10 writer 2 = 20 reader 2 = 15] 
+-start writer, then sleep 1s. lock granted to write (prio 20)
+  reader 2: to acquire lock
+  writer 1: to release lock
+  reader 2: acquired lock, sleep 2s
+  reader 1: acquired lock, sleep
+ Writer/reader/writer/reader priority after resuming [ writer 1 = -1 reader 1 = 10 writer 2 = 20 reader 2 = 15] 
+-start reader A, then sleep 1s. reader A(prio 15) blocked on the lock
+  writer 2: to acquire lock
+ 2s
+
+
+Ans 2
+
+I found that the provided code using semaphores and lock incorrectly. I found that the reader process is trying to access lock and concurrently multiple reader processes can also access the lock.
+do_update is using local lock variable, it means that any thread or process can acquire the same lock.
+Here critical section is try_update, which uses a global semaphore. As its a global semaphore, writer thread can also enter to critical section and update global variable.
+buffer_add is the critical region, if multiple process access it, issue of interleaving can occur. Which results in multiple processes update to same buffer in the memory.
+
+Final data value will be dependent on the scheduling policy used.
+
+All these highlighted points will lead to the inconsitency in the value stored in the critical section. 
+
+As no mutex functionality applied in the code, the output can not be determined and will be random in nature.
+
+
