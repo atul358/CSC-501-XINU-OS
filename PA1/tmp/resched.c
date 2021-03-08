@@ -33,9 +33,6 @@ int resched() {
   if (EXPDISTSCHED == scheduler_type) {
 
     optr = &proctab[currpid];
-    // kprintf("\n------------------------\n");
-    // kprintf("\n Curr PID %d \n", currpid);
-    // kprintf("\n value at random  %d \n", random);
     if (optr->pstate == PRCURR) {
       optr->pstate = PRREADY;
       insert(currpid, rdyhead, optr->pprio);
@@ -66,26 +63,19 @@ int resched() {
 
   else if (LINUXSCHED == scheduler_type) {
     optr = &proctab[currpid];
-    //kprintf("##########################################\n");
-    //kprintf("\ncurrent pid %d \n", currpid);
     if (currpid == NULLPROC) {
       //kprintf("nulproc and counter - 0");
       optr->counter = 0;
       optr->goodness = 0;
     }
 
-    //kprintf("current process prio %d \n", optr->pprio);
-   // kprintf("current process counter %d \n", optr->counter);
   
 
    if (optr->counter > 0 || preempt > 0) {
       optr->counter = preempt;
       optr->counter = (int)optr->counter / 2 + optr->pprio;
-      optr->goodness = optr->counter + optr->pprio;
-     // kprintf(">0 preempt counter & goodness -%d  %d %d\n", preempt,    
+      optr->goodness = optr->counter + optr->pprio;   
     }
-    //kprintf("preempt =  %d\n",preempt);
-    
 
    if (optr->counter <= 0 || preempt <= 0) { // kprintf("preempt <0 %d\n", preempt);
       optr->goodness = 0;
@@ -102,33 +92,10 @@ int resched() {
            max_goodness = proctab[j].goodness;
            next_proc = j;
            }
-      // kprintf("max goodness %d \n",max_goodness);
         j = q[j].qnext;
     }
-    
-    /*int i= 0;
-    while(i<NPROC)
-    {
-        nptr = &proctab[i];
-        if(nptr->pstate != PRFREE)
-        {
-        nptr->goodness = nptr->pprio + nptr->counter;
-        nptr->counter = (int)nptr->counter / 2 + nptr->pprio;
-        }
-        i++;
-    }*/
-	
-    //kprintf("max goodness %d \n", max_goodness);
-   // kprintf("next process %d \n", next_proc);
-
-    /*if (currpid == NULLPROC){
-                    kprintf("nulproc and counter - 0");
-                    optr->counter = 0;
-                    optr->goodness = 0;
-    }*/
 
     if (max_goodness > optr->goodness) {
-      //kprintf("max_goodness > optr->goodness %d %d\n", max_goodness,optr->goodness);
       optr->pstate = PRREADY;
       insert(currpid, rdyhead, optr->pprio);
       dequeue(next_proc);
@@ -138,7 +105,6 @@ int resched() {
     
 
 #ifdef RTCLOCK
-    //preempt = QUANTUM;
     preempt = nptr->counter; /* reset preemption counter     */
 #endif
     ctxsw((int)&optr->pesp, (int)optr->pirmask, (int)&nptr->pesp,
@@ -150,7 +116,6 @@ int resched() {
   else if (max_goodness <  optr->goodness && optr->counter > 0)
 
    {    
-	//kprintf("max_goodness <  optr->goodness && optr->counter > 0    return OK");
 	if (optr->pstate == PRCURR)
   		return OK;
 	else
@@ -192,7 +157,6 @@ int resched() {
     }
 
     /*---------- NULLPROC HANDLING ------------*/	
-    //kprintf("NULL PROC Handling done");
 
     optr->pstate = PRREADY;
     insert(currpid, rdyhead, optr->pprio);
@@ -200,7 +164,6 @@ int resched() {
     nptr->pstate = PRCURR;
     dequeue(NULLPROC);
     currpid = NULLPROC;
-    //kprintf("NULL PROC Handling done");
 
 #ifdef RTCLOCK
     preempt = QUANTUM; /* reset preemption counter     */
